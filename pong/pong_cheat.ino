@@ -1,11 +1,11 @@
 // Define pins used by potentiometer knobs
-#define paddle_l 16
-#define paddle_r 15
+#define paddle_l 22
+#define paddle_r 21
 
 // Define pins used by buttons
-#define button_l 22
-#define button_r 21
-#define button_m 20
+#define button_l 4
+#define button_r 5
+#define button_m 6
 
 // Define pins used by SPI to communicate with LCD display
 #define cs   10
@@ -26,6 +26,7 @@ Adafruit_ST7735 tft = Adafruit_ST7735(cs, dc, rst);
 #define PADDLE_SIZE 30
 
 int player1_pos = 0, player1_score = 0;
+int player2_pos = 0, player2_score = 0;
 
 float ball_x, ball_y;
 float ball_xdir, ball_ydir;
@@ -76,10 +77,13 @@ void setup(void) {
 void loop() {
   draw_ball(ball_x, ball_y, ST7735_BLACK);
   draw_paddle(4, player1_pos, ST7735_BLACK);
+  draw_paddle(WIDTH-4, player2_pos, ST7735_BLACK);
 
   draw_score(1, player1_score, ST7735_BLACK);
+  draw_score(2, player2_score, ST7735_BLACK);
 
   player1_pos = HEIGHT - (analogRead(paddle_l) * HEIGHT / ANALOG_MAX);
+  player2_pos = HEIGHT - (analogRead(paddle_r) * HEIGHT / ANALOG_MAX);
 
   // If ball goes to top or bottom, just bounce
   if (ball_y < 4 || ball_y > HEIGHT-4) {
@@ -93,10 +97,22 @@ void loop() {
     ball_xdir *= -1;
     ball_ydir += (ball_y - player1_pos) / PADDLE_SIZE * 2.5;
   }
+
+  // If ball hits player 2's paddle, bounce
+  if (ball_x > WIDTH-8 && ball_x < WIDTH-4 &&
+      ball_y > (player2_pos - PADDLE_SIZE/2) &&
+      ball_y < (player2_pos + PADDLE_SIZE/2)) {
+    ball_xdir *= -1;
+    ball_ydir += (ball_y - player2_pos) / PADDLE_SIZE * 2.5;
+  }
   
   ball_x += ball_xdir;
   ball_y += ball_ydir;
-  // If ball gets behind player, it's gone
+  // If ball gets behind either player, it's gone
+  if (ball_x < 0) {
+    player2_score++;
+    reset_ball();
+  }
   if (ball_x > WIDTH) {
     player1_score++;
     reset_ball();
@@ -104,8 +120,10 @@ void loop() {
     
   draw_ball(ball_x, ball_y, ST7735_BLUE);
   draw_paddle(4, player1_pos, ST7735_WHITE);
+  draw_paddle(WIDTH-4, player2_pos, ST7735_WHITE);
   
   draw_score(1, player1_score, ST7735_RED);
+  draw_score(2, player2_score, ST7735_RED);
   
   delay(30);
 }
