@@ -1,7 +1,8 @@
-#define paddle_l 22
-#define paddle_r 21
-//#define sclk 13
-//#define mosi 11
+// Define pins used by potentiometer knobs
+#define paddle_l 16
+#define paddle_r 15
+
+// Define pins used by SPI to communicate with LCD display
 #define cs   10
 #define dc   9
 #define rst  8  // you can also connect this to the Arduino reset

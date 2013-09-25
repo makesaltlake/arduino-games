@@ -1,21 +1,3 @@
-const int pinLightL = 3;
-const int pinLightM = 4;
-const int pinLightR = 5;
-
-const int pinButtonL = 22;
-const int pinButtonM = 21;
-const int pinButtonR = 20;
-
-//// Define pins used by potentiometer knobs
-//#define paddle_l 22
-//#define paddle_r 21
-//
-//// Define pins used by buttons
-//#define button_l 4
-//#define button_r 5
-//#define button_m 6
-
-
 // Define pins used by potentiometer knobs
 #define paddle_l 16
 #define paddle_r 15

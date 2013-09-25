@@ -1,8 +1,8 @@
 const int pinLED = 13;
 
-const int pinLightL = 3;
-const int pinLightM = 4;
-const int pinLightR = 5;
+const int pinLightGreen = 3;
+const int pinLightBlue = 4;
+const int pinLightRed = 5;
 
 const int pinButtonL = 22;
 const int pinButtonM = 21;
@@ -26,16 +26,16 @@ int get_pressed_button_id() {
 void on(int light_id) {
   switch(light_id) {
     case 0: off(); break;
-    case 1: digitalWrite(pinLightL, HIGH); break;
-    case 2: digitalWrite(pinLightM, HIGH); break;
-    case 3: digitalWrite(pinLightR, HIGH); break;
+    case 1: digitalWrite(pinLightGreen, HIGH); break;
+    case 2: digitalWrite(pinLightBlue, HIGH); break;
+    case 3: digitalWrite(pinLightRed, HIGH); break;
   }
 }
 
 void off() {
-  digitalWrite(pinLightL, LOW);
-  digitalWrite(pinLightM, LOW);
-  digitalWrite(pinLightR, LOW);
+  digitalWrite(pinLightGreen, LOW);
+  digitalWrite(pinLightBlue, LOW);
+  digitalWrite(pinLightRed, LOW);
 }
 
 int random_light() {
@@ -62,9 +62,9 @@ void setup() {
   pinMode(pinButtonM, INPUT);
   pinMode(pinButtonR, INPUT);
 
-  pinMode(pinLightL, OUTPUT);
-  pinMode(pinLightM, OUTPUT);
-  pinMode(pinLightR, OUTPUT);
+  pinMode(pinLightGreen, OUTPUT);
+  pinMode(pinLightBlue, OUTPUT);
+  pinMode(pinLightRed, OUTPUT);
   
   clear_memory();
   

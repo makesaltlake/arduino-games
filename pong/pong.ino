@@ -1,11 +1,21 @@
+/*
+
+1 Player Pong!
+
+This is a sample sketch to get you started on pong. The challenge:
+
+Figure out how to make the second player's paddle work!
+
+*/
+
 // Define pins used by potentiometer knobs
 #define paddle_l 16
 #define paddle_r 15
 
 // Define pins used by buttons
 #define button_l 22
-#define button_r 21
-#define button_m 20
+#define button_m 21
+#define button_r 20
 
 // Define pins used by SPI to communicate with LCD display
 #define cs   10
