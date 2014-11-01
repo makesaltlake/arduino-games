@@ -16,9 +16,9 @@
 #define PIN_PADDLE_R 21
 
 // Define pins used by buttons
-#define PIN_BUTTON_L     4
+#define PIN_BUTTON_L     6
 #define PIN_BUTTON_R     5
-#define PIN_BUTTON_START 6
+#define PIN_BUTTON_START 4
 
 // Define pins used by SPI to communicate with LCD display
 #define PIN_CSEL  10
@@ -149,6 +149,7 @@ bool never_landed_on_planet_before = true;
 #define STORY_INTRO2 1
 #define STORY_INTRO3 2
 int story_sequence = 0;
+int canon_story_seq = 0;
 
 void print(char* text, int color=WHITE) {
   tft.setCursor(0, 0);
@@ -178,6 +179,7 @@ void set_main_mode(int mode) {
   if (next_mode == MODE_TITLE) {
     space_explorer_mode = false;
     story_sequence = STORY_INTRO;
+    canon_story_seq = 0;
     never_landed_on_planet_before = true;
 
     view._x = -ST7735_TFTWIDTH/2;
@@ -216,13 +218,14 @@ void mode_title() {
   tft.println("i");
   tft.setCursor(mb_x+83, 40);
   tft.println("eve");
+
+  centered_text("by Duane", GRAY, 80);
+  centered_text("and Rella", GRAY, 90);
   
   if (title_flash % 30 < 15)
-    centered_text("Press Start", GRAY, 100);
+    centered_text("Press START", GRAY, 120);
   else
-    centered_text("Press Start", WHITE, 100);
-
-  centered_text("(R skips story)", GRAY, 112);
+    centered_text("Press START", WHITE, 120);
   
   title_flash++;
   
@@ -269,6 +272,9 @@ void mode_calibrate() {
 
 // MODE_SPACE (2)
 void mode_space() {
+  // Explorer mode
+  if (space_explorer_mode) view.center_on(spaceship);
+
   // EVENT LOOP
   for (uint i = 0; i < space_thing_count; i++) {
     if(things[i]->_needs_erase) {
@@ -289,20 +295,17 @@ void mode_space() {
   }
   if (never_landed_on_planet_before) {
     if (spaceship._former_orbiting_planet != NULL && spaceship._orbiting_planet == NULL) {
-      centered_text("(press R", BLACK, 48);
+      centered_text("(press START", BLACK, 48);
       centered_text("to land)", BLACK, 56);
     }
     if (spaceship._orbiting_planet != NULL) {
-      centered_text("(press R", GRAY, 48);
+      centered_text("(press START", GRAY, 48);
       centered_text("to land)", GRAY, 56);
     }
   }
 
   // CONTROL
   player_control(spaceship, paddle_left, paddle_right);
-  
-  // Explorer mode
-  if (space_explorer_mode) view.center_on(spaceship);
 
   // Lost in space?
   if (spaceship._cx < view.x1() - tft.width()  || spaceship._cx > view.x2() + tft.width() ||
@@ -315,7 +318,7 @@ void mode_space() {
   // WAIT
   delay(30);
 
-  if (button_right.is_pressed() && spaceship._orbiting_planet != NULL) {
+  if (button_start.is_pressed() && spaceship._orbiting_planet != NULL) {
     mode_planetscape_init_for_descent();
     set_main_mode(MODE_PLANETSCAPE);
   }
@@ -410,7 +413,7 @@ void mode_lander_init_for_descent() {
 void mode_lander_init_for_ascent() {
   mode_lander_init_bg = true;
 
-  spaceship._cy -= 10;
+  spaceship._cy -= 20;
   spaceship._direction = -PI/2;
 }
 
@@ -426,9 +429,9 @@ void mode_lander(void) {
   spaceship.draw(tft, zero_view);
 
   switch(planet->get_surface_position(
-  spaceship._cx + tft.width()/2,
-  spaceship._cy + tft.height()/2 + spaceship._size,
-  tft.width(), 80)) {
+           spaceship._cx + tft.width()/2,
+           spaceship._cy + tft.height()/2 + spaceship._size,
+           tft.width(), 80)) {
     case surface_above: break;
     case surface_pad:
       tft.setTextSize(1);
@@ -461,26 +464,78 @@ void mode_lander(void) {
 void mode_surface() {
   tft.setTextSize(1);
   tft.setTextColor(GRAY);
-  tft.setCursor(64-strlen("SURFACE")*3, 40);
-  tft.println("SURFACE");
-  delay(30);
 
-  if (button_right.is_pressed()) {
-    mode_lander_init_for_ascent();
-    set_main_mode(MODE_LANDER);
+  if (planet == &canon) {
+    switch(canon_story_seq) {
+      case 0:
+        print((char*)"\n\n"
+                     "You land on the\n"
+                     "surface of Canon,\n"
+                     "near the science\n"
+                     "exploratory facility\n"
+                     "where your parents\n"
+                     "worked.\n"
+                     " \n\n\n\n\n\n\n\n\n"
+                     "    (press START)");
+        canon_story_seq++;
+        break;
+      case 1:
+        print((char*)"\n\n"
+                     "There is an ominous\n"
+                     "deep, slow pulsating\n"
+                     "sound that seems to\n"
+                     "come from the planet\n"
+                     "itself, quickening\n"
+                     "ever so slowly, as\n"
+                     "if the planet were\n"
+                     "awakening."
+                     "\n\n\n\n\n\n\n\n"
+                     "    (press START)");
+        canon_story_seq++;
+        break;
+      case 2:
+        print((char*)"\n\n"
+                     "You find your school\n"
+                     "thumb drive that\n"
+                     "contains a map of\n"
+                     "nearby star systems\n"
+                     "and nervously hop\n"
+                     "back in to your\n"
+                     "spaceship.\n"
+                     "\n\n\n\n\n\n\n\n"
+                     "    (press START)");
+        canon_story_seq++;
+        break;
+      case 3:
+        mode_lander_init_for_ascent();
+        set_main_mode(MODE_LANDER);
+        space_explorer_mode = true;
+
+        canon_story_seq++;
+        return;
+    }
+  } else {
+      print((char*)"\n\n"
+                   "        * LANDED *\n");
+      mode_lander_init_for_ascent();
+      set_main_mode(MODE_LANDER);
   }
+
+  main_mode = MODE_WAIT_BUTTON;
+  delay(30);
 }
 
 void mode_story() {
   switch(story_sequence) {
     case STORY_INTRO:
       print((char*)"\n\n"
-                   "When Rachel awoke,\n"
-                   "her parents did not\n"
-                   "wake with her. They\n"
-                   "were in cryosleep,\n"
-                   "but nothing could\n"
-                   "rouse them.\n\n");
+                   " When Rachel awoke,\n"
+                   " her parents did not\n"
+                   " wake with her. They\n"
+                   " were in cryosleep,\n"
+                   " and nothing she did\n"
+                   " could rouse them.\n\n\n\n\n\n\n\n\n\n"
+                   "    (press START)");
       story_sequence++;
       break;
     case STORY_INTRO2:
@@ -492,7 +547,8 @@ void mode_story() {
                    "decade attempted to\n"
                    "unlock the mysteries\n"
                    "of an ancient\n"
-                   "planetary archive.");
+                   "planetary archive.\n\n\n\n\n\n\n\n\n"
+                   "    (press START)");
       story_sequence++;
       break;
     case STORY_INTRO3:
@@ -503,7 +559,8 @@ void mode_story() {
                    "no one.\n\n\n"
                    "    What could a\n"
                    "  12 year old girl\n"
-                   "    possibly do?");
+                   "    possibly do?\n\n\n\n\n\n\n"
+                   "    (press START)");
       next_mode = MODE_CALIBRATE;
       story_sequence++;
       break;
@@ -555,11 +612,4 @@ void loop() {
     case MODE_WAIT_BUTTON: mode_wait_button(); break;
     case MODE_BUTTON_UP:   mode_button_up();   break;
   }
-  // if (button_start.is_pressed() &&
-  //     main_mode != MODE_TITLE && 
-  //     main_mode != MODE_WAIT_BUTTON &&
-  //     main_mode != MODE_BUTTON_UP &&
-  //     main_mode != MODE_STORY) {
-  //   set_main_mode(MODE_TITLE);
-  // }
 }
